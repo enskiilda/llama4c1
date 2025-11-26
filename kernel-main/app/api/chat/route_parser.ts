@@ -159,6 +159,12 @@ export function parseTextToolCall(text: string): ParsedToolCall | null {
       extract: () => ({ action: "screenshot" })
     },
     {
+      // computer_use("get_cursor_position")
+      regex: /computer_use\s*\(\s*["'`]get_cursor_position["'`]\s*\)/gi,
+      action: "get_cursor_position",
+      extract: () => ({ action: "get_cursor_position" })
+    },
+    {
       // computer_use("wait", 2) lub computer_use("wait")
       regex: /computer_use\s*\(\s*["'`]wait["'`]\s*(?:,\s*(\d+))?\s*\)/gi,
       action: "wait",
@@ -244,6 +250,10 @@ export function parseTextToolCall(text: string): ParsedToolCall | null {
     {
       regex: /\bscreenshot\s*\(\s*\)/gi,
       extract: () => ({ action: "screenshot" })
+    },
+    {
+      regex: /\bget_cursor_position\s*\(\s*\)/gi,
+      extract: () => ({ action: "get_cursor_position" })
     },
     {
       regex: /\b(left_click|click|double_click|right_click|mouse_move)\s*\(\s*(.+?)\s*\)/gi,
