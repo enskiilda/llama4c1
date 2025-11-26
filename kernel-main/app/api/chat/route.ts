@@ -109,7 +109,7 @@ Twoja następna odpowiedź: computer_use("screenshot")
 Rozdzielczość desktop: ${resolution.x}×${resolution.y} pikseli
 
 Dostępne akcje przez computer_use:
-screenshot, left_click, right_click, double_click, mouse_move, type, key, scroll, left_click_drag, wait
+screenshot, left_click, right_click, double_click, mouse_move, type, key, scroll, left_click_drag, wait, get_cursor_position
 
 Kończenie: napisz !isfinish na końcu wiadomości gdy zadanie ukończone.`;
 
@@ -239,7 +239,7 @@ export async function POST(request: Request) {
                 properties: {
                   action: {
                     type: "string",
-                    enum: ["screenshot", "left_click", "right_click", "double_click", "mouse_move", "type", "key", "scroll", "wait", "left_click_drag"],
+                    enum: ["screenshot", "left_click", "right_click", "double_click", "mouse_move", "type", "key", "scroll", "wait", "left_click_drag", "get_cursor_position"],
                     description: "The action to perform on the computer"
                   },
                   coordinate: {
@@ -449,10 +449,14 @@ export async function POST(request: Request) {
             
             // KROK 2: Dodaj tekst do historii czatu (tylko jeśli był)
             if (textBeforeAction && textBeforeAction.trim()) {
-              chatHistory.push({
-                role: "assistant",
-                content: textBeforeAction,
-              });
+              // Filter textBeforeAction to ensure no JSON or !isfinish leaks through
+              const filteredTextBefore = removeJsonFromText(textBeforeAction);
+              if (filteredTextBefore && filteredTextBefore.trim()) {
+                chatHistory.push({
+                  role: "assistant",
+                  content: filteredTextBefore,
+                });
+              }
             } else if (fullText && fullText.trim()) {
               // Jeśli nie było parsed textBefore, użyj pełnego tekstu
               const filteredText = removeJsonFromText(fullText);
@@ -639,6 +643,13 @@ SCREEN: ${width}×${height} pixels | Aspect ratio: 4:3 | Origin: (0,0) at TOP-LE
                       resultData = { type: "text", text: resultText };
                       break;
                     }
+                    case "get_cursor_position": {
+                      // Note: OnKernel SDK doesn't provide a direct getCursorPosition API
+                      // The cursor position can be observed in screenshots
+                      resultText = `Cursor position information is available in screenshots. Take a screenshot to see the current cursor location.`;
+                      resultData = { type: "text", text: resultText };
+                      break;
+                    }
                     default: {
                       resultText = `Unknown action: ${action}`;
                       resultData = { type: "text", text: resultText };
@@ -780,11 +791,16 @@ SCREEN: ${width}×${height} pixels | Aspect ratio: 4:3 | Origin: (0,0) at TOP-LE
             if (fullText) {
               messageCounter++;
               
-              // Normal text message - add to history and continue loop
-              chatHistory.push({
-                role: "assistant",
-                content: fullText,
-              });
+              // Filter the text before adding to history to remove JSON and !isfinish
+              const filteredText = removeJsonFromText(fullText);
+              
+              // Normal text message - add FILTERED text to history and continue loop
+              if (filteredText && filteredText.trim()) {
+                chatHistory.push({
+                  role: "assistant",
+                  content: filteredText,
+                });
+              }
               
               // Check if AI wants to finish - komenda !isfinish jest już w tekście
               // Po prostu kończymy pętlę

@@ -185,6 +185,12 @@ function describeComputerAction(part: NonNullable<Message["parts"]>[number] & { 
               : undefined,
         icon: SplinePointerIcon,
       };
+    case "get_cursor_position":
+      return {
+        label: "Get cursor position",
+        detail: undefined,
+        icon: SplinePointerIcon,
+      };
     default:
       return {
         label: action ?? "Computer action",
