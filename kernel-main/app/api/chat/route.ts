@@ -587,9 +587,9 @@ SCREEN: ${width}×${height} pixels | Aspect ratio: 4:3 | Origin: (0,0) at TOP-LE
                       break;
                     }
                     case "get_cursor_position": {
-                      // OnKernel API doesn't have a direct getCursorPosition method
-                      // We'll use a screenshot and return a default position message
-                      resultText = `Cursor position tracking is available. Use screenshot to see current cursor position.`;
+                      // Note: OnKernel SDK doesn't provide a direct getCursorPosition API
+                      // The cursor position can be observed in screenshots
+                      resultText = `Cursor position information is available in screenshots. Take a screenshot to see the current cursor location.`;
                       resultData = { type: "text", text: resultText };
                       break;
                     }
